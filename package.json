@@ -1,0 +1,53 @@
+{
+  "name": "@nymrel/agent-beacon",
+  "version": "1.0.0",
+  "description": "Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "agent-beacon": "./bin/agent-beacon.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "node --test test/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "start": "node bin/agent-beacon.js server"
+  },
+  "keywords": [
+    "ai-agents",
+    "heartbeat",
+    "liveness",
+    "dead-mans-switch",
+    "watchdog",
+    "sentinel",
+    "autonomous-agents",
+    "monitoring",
+    "zero-dependency",
+    "nymrel"
+  ],
+  "author": "Nymrel / JalenBuilds LLC <contact@jalenbuilds.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nymrel/agent-beacon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nymrel/agent-beacon/issues"
+  },
+  "homepage": "https://github.com/nymrel/agent-beacon#readme",
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

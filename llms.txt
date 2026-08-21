@@ -1,0 +1,27 @@
+# Agent Beacon
+> Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers.
+
+## Entity & Trust Graph
+- Organization: Nymrel
+- Parent Legal Entity: JalenBuilds LLC
+- Contact Email: contact@jalenbuilds.com
+- Repository: https://github.com/nymrel/agent-beacon
+- License: MIT License (Copyright 2026 Nymrel / JalenBuilds LLC)
+
+## Purpose & Architecture
+Agent Beacon monitors background AI agents, long-running LLM evaluation loops, subagents, and cloud workers. If a worker silently stalls, crashes, or gets killed, Agent Beacon triggers dead-man's switch alarms and broadcasts alerts to Discord, Slack, Telegram, webhooks, or terminal consoles.
+
+## Endpoints
+- `POST /ping` or `POST /api/v1/ping`: Ingest heartbeat with JSON payload (`{"id": "string", "ttlSec": 30, "status": "ok"}`).
+- `GET /ping?id=<agentId>&ttl=30`: Lightweight query-parameter ping for curl / one-liners.
+- `GET /status` or `GET /health`: Fleet health summary JSON including total, healthy, degraded, dead, and retired agents.
+- `GET /agents`: List all registered agents with telemetry and tags.
+- `GET /agents/:id`: Query details and transition history for a specific agent.
+- `DELETE /agents/:id` or `POST /deregister`: Gracefully retire a completed agent.
+- `GET /events`: Server-Sent Events (SSE) live event stream.
+- `UDP :8766`: Fire-and-forget sub-millisecond datagram heartbeats.
+
+## Installation & SDKs
+- Node.js / TypeScript: `npm install @nymrel/agent-beacon`
+- Python: `pip install agent-beacon`
+- CLI: `npx @nymrel/agent-beacon server` or `agent-beacon watch -- python agent.py`

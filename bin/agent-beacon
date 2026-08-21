@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+/**
+ * @nymrel/agent-beacon
+ * Executable CLI entrypoint wrapper.
+ * Copyright (c) 2026 Nymrel / JalenBuilds LLC. MIT Licensed.
+ */
+
+import './agent-beacon.js';
