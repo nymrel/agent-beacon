@@ -128,8 +128,17 @@ class BeaconRequestHandler(BaseHTTPRequestHandler):
             payload = HeartbeatPayload(
                 id=agent_id,
                 name=body.get("name"),
-                ttl_sec=body.get("ttlSec") or body.get("ttl_sec"),
-                grace_sec=body.get("graceSec") or body.get("grace_sec"),
+                ttl_sec=(
+                    body.get("ttlSec")
+                    or body.get("ttl_sec")
+                    or body.get("interval")
+                    or body.get("interval_sec")
+                ),
+                grace_sec=(
+                    body.get("graceSec")
+                    or body.get("grace_sec")
+                    or body.get("grace")
+                ),
                 seq=body.get("seq"),
                 status=body.get("status", "ok"),
                 metrics=body.get("metrics", {}),

@@ -52,6 +52,7 @@ def main() -> None:
     png.add_argument("--name", "-n", help="Agent display name")
     png.add_argument("--url", default="http://127.0.0.1:8765", help="Beacon server URL")
     png.add_argument("--ttl", type=float, help="TTL in seconds")
+    png.add_argument("--grace", type=float, help="Grace window in seconds (DEGRADED before DEAD)")
     png.add_argument("--status", default="ok", choices=["ok", "degraded"], help="Health status")
 
     # Subcommand: done
@@ -66,6 +67,17 @@ def main() -> None:
     stat.add_argument("--json", action="store_true", help="Output raw JSON")
 
     args = parser.parse_args()
+
+    # Windows redirected/pipe stdout often defaults to a legacy codepage (e.g. cp1252)
+    # that cannot encode the ANSI box-drawing banner. Reconfigure to UTF-8 with
+    # replacement so the daemon never dies on cosmetic output.
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
 
     if not args.command:
         parser.print_help()
@@ -133,6 +145,7 @@ def handle_ping(args: argparse.Namespace) -> None:
         "id": args.id,
         "name": args.name or args.id,
         "ttlSec": args.ttl,
+        "graceSec": args.grace,
         "status": args.status,
     }
     data = json.dumps(payload).encode("utf-8")
