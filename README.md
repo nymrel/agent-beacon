@@ -302,7 +302,7 @@ Agent Beacon complies with the **Nymrel Dual-Audience Rule**, providing verified
       "parentOrganization": {
         "@type": "Organization",
         "name": "JalenBuilds LLC",
-        "email": "contact@jalenbuilds.com"
+        "email": "contact@nymrel.com"
       }
     }
   }

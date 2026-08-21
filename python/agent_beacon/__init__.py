@@ -26,7 +26,7 @@ from .client import BeaconClient, beacon_watch
 from .server import BeaconServer, BeaconRequestHandler, BeaconUdpServer
 
 __version__ = "1.0.0"
-__author__ = "Nymrel / JalenBuilds LLC <contact@jalenbuilds.com>"
+__author__ = "Nymrel / JalenBuilds LLC <contact@nymrel.com>"
 
 __all__ = [
     "AgentStatus",

@@ -7,7 +7,7 @@ name = "agent-beacon"
 version = "1.0.0"
 description = "Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers"
 readme = "README.md"
-authors = [{ name = "Nymrel / JalenBuilds LLC", email = "contact@jalenbuilds.com" }]
+authors = [{ name = "Nymrel / JalenBuilds LLC", email = "contact@nymrel.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.9"
 dependencies = []

@@ -4,7 +4,7 @@
 ## Entity & Trust Graph
 - Organization: Nymrel
 - Parent Legal Entity: JalenBuilds LLC
-- Contact Email: contact@jalenbuilds.com
+- Contact Email: contact@nymrel.com
 - Repository: https://github.com/nymrel/agent-beacon
 - License: MIT License (Copyright 2026 Nymrel / JalenBuilds LLC)
 

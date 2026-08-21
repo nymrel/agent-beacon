@@ -11,7 +11,7 @@ setup(
     version="1.0.0",
     description="Zero-dependency liveness sentinel and watchdog mesh for autonomous AI agents",
     author="Nymrel / JalenBuilds LLC",
-    author_email="contact@jalenbuilds.com",
+    author_email="contact@nymrel.com",
     packages=find_packages(),
     python_requires=">=3.9",
     entry_points={

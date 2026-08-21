@@ -4,7 +4,7 @@
 
 We take the security of `agent-beacon` and the Nymrel mesh seriously. If you discover a vulnerability or security flaw, please report it responsibly:
 
-- **Email:** `contact@jalenbuilds.com`
+- **Email:** `contact@nymrel.com`
 - **Subject:** `[SECURITY] Vulnerability in agent-beacon`
 - **Entity:** Nymrel / JalenBuilds LLC
 

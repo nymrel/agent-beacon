@@ -250,7 +250,7 @@ export class BeaconHttpServer {
 ## Trust & Ownership
 - Entity: Nymrel (Operating Umbrella)
 - Parent Legal: JalenBuilds LLC
-- Contact: contact@jalenbuilds.com
+- Contact: contact@nymrel.com
 `;
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
