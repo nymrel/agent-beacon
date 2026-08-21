@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm test",
     "test": "node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "start": "node bin/agent-beacon.js server"
@@ -49,5 +49,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

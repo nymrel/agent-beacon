@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-beacon"
+version = "1.0.0"
+authors = [
+  { name = "Nymrel / JalenBuilds LLC", email = "contact@nymrel.com" },
+]
+description = "Zero-dependency liveness sentinel and watchdog mesh for autonomous AI agents"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: System :: Monitoring",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = ["ai-agents", "liveness", "watchdog", "sentinel", "heartbeat", "nymrel"]
+
+[project.urls]
+"Homepage" = "https://github.com/nymrel/agent-beacon"
+"Bug Tracker" = "https://github.com/nymrel/agent-beacon/issues"
+
+[project.scripts]
+agent-beacon-py = "agent_beacon.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["python"]
