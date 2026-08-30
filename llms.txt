@@ -1,6 +1,12 @@
 # Agent Beacon
 > Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers.
 
+## Status
+- Pre-release source evaluation only as of 2026-08-30.
+- npm `@nymrel/agent-beacon`: not published.
+- PyPI `agent-beacon`: not published.
+- Repository manifest version `1.0.0` is not a production-readiness or support claim.
+
 ## Entity & Trust Graph
 - Organization: Nymrel
 - Parent Legal Entity: JalenBuilds LLC
@@ -21,7 +27,18 @@ Agent Beacon monitors background AI agents, long-running LLM evaluation loops, s
 - `GET /events`: Server-Sent Events (SSE) live event stream.
 - `UDP :8766`: Fire-and-forget sub-millisecond datagram heartbeats.
 
-## Installation & SDKs
-- Node.js / TypeScript: `npm install @nymrel/agent-beacon`
-- Python: `pip install agent-beacon`
-- CLI: `npx @nymrel/agent-beacon server` or `agent-beacon watch -- python agent.py`
+## Source Evaluation
+- Node.js 22.19–26 and npm 11: `npm ci --ignore-scripts && npm run check`
+- Python 3.11–3.14: `python -m unittest discover -s python/tests -p "test_*.py"`
+- Source CLI: `node bin/agent-beacon.js server`
+- Registry installation commands are intentionally omitted until an independently verified release exists.
+
+## Security Boundary
+- Agent state is in-memory and is lost on restart.
+- HTTP and UDP ingestion have no built-in caller authentication, authorization, tenant isolation, or rate limiting.
+- Alert delivery is best effort; this is not a durable audit system or sole production monitor.
+- Do not expose the source server directly to an untrusted network. Put authentication and rate limiting in front of it and keep sensitive data out of heartbeat metadata.
+
+## Distribution Rule
+- Publishing requires an existing semantic-version tag integrated into `main`, matching Node and Python versions, an explicit `publish` workflow confirmation, protected npm/PyPI environments, and OIDC trusted-publisher configuration.
+- Repository content, passing local tests, or a manifest version alone does not prove publication.

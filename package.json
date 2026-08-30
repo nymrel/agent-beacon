@@ -1,24 +1,39 @@
 {
   "name": "@nymrel/agent-beacon",
   "version": "1.0.0",
+  "packageManager": "npm@11.19.1",
   "description": "Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "agent-beacon": "./bin/agent-beacon.js"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
-    "dist",
-    "bin",
+    "dist/",
+    "bin/agent-beacon.js",
+    "CHANGELOG.md",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "RELEASE_READINESS.md",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build && npm test",
     "test": "node --test test/*.test.mjs",
+    "test:python": "python -m unittest discover -s python/tests -p test_*.py",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build && npm test && npm run test:python && npm run check:package",
+    "check:package": "npm run build && node scripts/check-package.mjs",
+    "audit:ci": "npm audit --audit-level=high",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run check",
     "start": "node bin/agent-beacon.js server"
   },
   "keywords": [
@@ -44,13 +59,16 @@
   },
   "homepage": "https://github.com/nymrel/agent-beacon#readme",
   "devDependencies": {
-    "@types/node": "^22.13.4",
-    "typescript": "^5.7.3"
+    "@types/node": "26.4.0",
+    "typescript": "7.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.19 <27",
+    "npm": ">=11.5 <12"
   },
+  "sideEffects": false,
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }

@@ -6,8 +6,8 @@
 
 import http from 'node:http';
 import https from 'node:https';
-import { URL } from 'node:url';
 import { BeaconEvent, Notifier } from '../core/types.js';
+import { requireHttpUrl } from '../utils/http-url.js';
 
 export abstract class BaseNotifier implements Notifier {
   public abstract readonly name: string;
@@ -31,7 +31,7 @@ export abstract class BaseNotifier implements Notifier {
   protected async postJson(targetUrl: string, body: unknown, headers: Record<string, string> = {}): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const parsed = new URL(targetUrl);
+        const parsed = requireHttpUrl(targetUrl, 'Notifier URL');
         const data = JSON.stringify(body);
         const isHttps = parsed.protocol === 'https:';
         const client = isHttps ? https : http;

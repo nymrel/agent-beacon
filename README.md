@@ -3,10 +3,13 @@
 > **Ultra-lightweight, zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-339933.svg?logo=node.js)](package.json)
-[![Python](https://img.shields.io/badge/Python-%3E%3D3.9-3776AB.svg?logo=python)](python/pyproject.toml)
+[![Node.js](https://img.shields.io/badge/Node.js-22.19%E2%80%9326-339933.svg?logo=node.js)](package.json)
+[![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-3776AB.svg?logo=python)](pyproject.toml)
 [![Zero Runtime Dependencies](https://img.shields.io/badge/Dependencies-0%20runtime-success.svg)](#architecture)
 [![Nymrel Mesh](https://img.shields.io/badge/Entity-Nymrel%20%7C%20JalenBuilds%20LLC-darkgreen.svg)](llms.txt)
+
+> [!IMPORTANT]
+> **Pre-release source evaluation only.** As of 2026-08-30, neither `@nymrel/agent-beacon` on npm nor `agent-beacon` on PyPI is published. The repository version is not a production-support promise. See [Release readiness](RELEASE_READINESS.md) before relying on it.
 
 ---
 
@@ -50,7 +53,7 @@ Autonomous AI agents, subagents, and long-running reasoning loops operate in vol
 - **OOM Kills & Cloud Preemption:** Spot instances, Docker OOM killer, or cloud worker timeout limits terminate agents abruptly.
 - **Lost Telemetry:** Traditional APMs add heavy dependencies and slow down agent initialization.
 
-**Agent Beacon** provides a self-hosted, single-binary / single-package watchdog daemon that listens for periodic pulses from your agents. If an agent fails to check in within its configured interval plus grace window, the **Dead-Man's Switch triggers** and broadcasts instant alerts across your team's channels.
+**Agent Beacon** provides self-hosted Node.js and Python watchdog implementations that listen for periodic pulses from your agents. If an agent fails to check in within its configured interval plus grace window, the dead-man's switch transitions its state and attempts configured alert deliveries.
 
 ---
 
@@ -63,32 +66,33 @@ Autonomous AI agents, subagents, and long-running reasoning loops operate in vol
   - **Server-Sent Events (SSE):** `GET /events` live stream for real-time dashboards and CLIs.
 - 🚨 **Dead-Man's Switch Watchdog:** 3-stage liveness state machine (`HEALTHY` ➔ `DEGRADED` ➔ `DEAD` ➔ `RECOVERED`).
 - 📣 **Pluggable Alert Dispatchers:** Native formatting for **Discord Webhooks**, **Slack Incoming Webhooks**, **Telegram Bot API**, **Generic JSON Webhooks with HMAC-SHA256**, and **ANSI Terminal Banners with audible bell (`\x07`)**.
-- 🛠️ **Universal Process Wrapper (`watch`):** Wrap any CLI command (`agent-beacon watch -- python agent.py`) with automatic background heartbeats and exit reporting.
-- 🌐 **Dual-Language Parity:** Complete feature parity between **TypeScript/Node.js** and **Python**.
-- 🤖 **Machine Trust & Dual-Audience:** Includes `/llms.txt`, JSON-LD entity metadata, and structured API responses.
+- 🛠️ **Process Wrapper (`watch`):** Wrap a CLI command with automatic background heartbeats and exit reporting.
+- 🌐 **Paired Implementations:** TypeScript/Node.js and Python provide the currently tested overlapping liveness capabilities; parity is verified per feature, not assumed globally.
+- 🤖 **Repository Metadata:** Includes repository-level `llms.txt`, entity metadata, and structured API responses.
 
 ---
 
-## 📦 Installation
+## 📦 Source Evaluation
 
-### Node.js / TypeScript
+Published registry installation is intentionally unavailable. Clone this repository and evaluate the exact reviewed source revision instead.
+
+### Node.js / TypeScript (Node.js 22.19–26, npm 11)
 ```bash
-npm install @nymrel/agent-beacon
+git clone https://github.com/nymrel/agent-beacon.git
+cd agent-beacon
+npm ci --ignore-scripts
+npm run check
 ```
 
-### Python
+### Python (Python 3.11–3.14)
 ```bash
-pip install agent-beacon
+git clone https://github.com/nymrel/agent-beacon.git
+cd agent-beacon
+python -m unittest discover -s python/tests -p "test_*.py"
+python -m compileall -q python/agent_beacon
 ```
 
-### Standalone CLI
-```bash
-# Run directly with npx
-npx @nymrel/agent-beacon server --port 8765
-
-# Or globally
-npm install -g @nymrel/agent-beacon
-```
+The package names and `agent-beacon` / `agent-beacon-py` console commands are reserved release interfaces. Do not use `npm install`, `npx`, or `pip install` until a release receipt confirms publication.
 
 ---
 
@@ -97,8 +101,8 @@ npm install -g @nymrel/agent-beacon
 ### 1. Start the Sentinel Daemon
 
 ```bash
-# Start daemon with Discord and Slack alerting
-npx @nymrel/agent-beacon server \
+# From a reviewed source checkout, start the Node.js daemon
+node bin/agent-beacon.js server \
   --port 8765 \
   --udp 8766 \
   --ttl 30 \
@@ -109,9 +113,12 @@ npx @nymrel/agent-beacon server \
 
 ### 2. Connect Your Agents
 
-#### 🟦 TypeScript / Node.js
+#### 🟦 TypeScript / Node.js API preview
+
+After `npm run build`, this source-checkout example imports the local build. A future published release may use `@nymrel/agent-beacon` after registry publication is independently verified.
+
 ```ts
-import { createPingClient } from '@nymrel/agent-beacon';
+import { createPingClient } from './dist/index.js';
 
 // Create and start background heartbeat loop (every 10s)
 const beacon = createPingClient({
@@ -189,7 +196,7 @@ echo '{"id": "edge-sensor-1"}' | nc -u -w0 127.0.0.1 8766
 #### 🛡️ CLI Process Wrapper
 Wrap any long-running command or script with auto-heartbeats:
 ```bash
-agent-beacon watch --id eval-subagent --interval 10 -- python long_eval.py --batch 500
+node bin/agent-beacon.js watch --id eval-subagent --interval 10 -- python long_eval.py --batch 500
 ```
 
 ---
@@ -198,17 +205,17 @@ agent-beacon watch --id eval-subagent --interval 10 -- python long_eval.py --bat
 
 | Command | Usage | Description |
 | :--- | :--- | :--- |
-| `server` | `agent-beacon server [flags]` | Start standalone sentinel daemon |
-| `ping` | `agent-beacon ping --id <id> [flags]` | Send one-shot heartbeat ping |
-| `done` | `agent-beacon done --id <id> [flags]` | Gracefully retire an agent |
-| `status` | `agent-beacon status [--watch] [--json]` | View interactive terminal fleet status |
-| `watch` | `agent-beacon watch --id <id> -- <cmd...>` | Spawn & supervise process with auto-pings |
+| `server` | `node bin/agent-beacon.js server [flags]` | Start the source-checkout sentinel daemon |
+| `ping` | `node bin/agent-beacon.js ping --id <id> [flags]` | Send one-shot heartbeat ping |
+| `done` | `node bin/agent-beacon.js done --id <id> [flags]` | Gracefully retire an agent |
+| `status` | `node bin/agent-beacon.js status [--watch] [--json]` | View interactive terminal fleet status |
+| `watch` | `node bin/agent-beacon.js watch --id <id> -- <cmd...>` | Spawn and supervise a process with auto-pings |
 
 ### Daemon Flags (`server`)
 
 - `--port, -p <number>`: HTTP port (default: `8765`)
 - `--udp, -u <number>`: UDP port (default: `8766`, set `false` or `0` to disable)
-- `--host, -h <string>`: Bind address (default: `0.0.0.0`)
+- `--host, -h <string>`: Bind address (default: `127.0.0.1`; choose a non-loopback address only behind an authenticated, rate-limited boundary)
 - `--ttl <seconds>`: Default TTL before degraded (default: `30`)
 - `--grace <seconds>`: Default grace window before dead-man trigger (default: `15`)
 - `--discord <url>`: Discord incoming webhook URL
@@ -283,11 +290,11 @@ Server-Sent Events (SSE) live stream broadcasting `agent:registered`, `agent:deg
 
 ---
 
-## 🤖 Entity Trust & AI Discoverability
+## 🤖 Entity Metadata & AI Discoverability
 
-Agent Beacon complies with the **Nymrel Dual-Audience Rule**, providing verified machine trust for autonomous AI purchasing agents and search bots.
+Agent Beacon exposes structured repository metadata for human and machine readers. Metadata improves inspectability; it is not proof of package publication, operational reliability, search ranking, or third-party trust.
 
-- **`/llms.txt`**: Standardized machine-readable agent discoverability file.
+- **[`llms.txt`](llms.txt)**: Repository-level machine-readable project metadata. The current Node.js and Python servers also generate an informational `/llms.txt` response; neither surface proves package publication or operational trust.
 - **Entity Graph**:
   ```json
   {
@@ -312,15 +319,11 @@ Agent Beacon complies with the **Nymrel Dual-Audience Rule**, providing verified
 
 ## 🧪 Automated Testing
 
-Both TypeScript and Python engines include complete test suites:
+Both TypeScript and Python implementations include focused automated suites. The complete local acceptance gate also builds and inspects the npm package boundary.
 
 ```bash
-# Run TypeScript compilation and Node test suite
-npm run build
-npm test
-
-# Run Python unit tests
-python -m unittest discover -s python/tests
+npm ci --ignore-scripts
+npm run check
 ```
 
 ---

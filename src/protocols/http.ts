@@ -36,7 +36,7 @@ export class BeaconHttpServer {
     this.watchdog = watchdog;
     this.sseManager = sseManager;
     this.port = options.port ?? 8765;
-    this.host = options.host ?? '0.0.0.0';
+    this.host = options.host ?? '127.0.0.1';
     this.maxBodyBytes = options.maxBodyBytes ?? 1024 * 1024; // 1 MB
   }
 
@@ -71,6 +71,11 @@ export class BeaconHttpServer {
   public getPort(): number | null {
     const addr = this.server?.address();
     return typeof addr === 'object' && addr ? addr.port : null;
+  }
+
+  public getAddress(): string | null {
+    const addr = this.server?.address();
+    return typeof addr === 'object' && addr ? addr.address : null;
   }
 
   private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {

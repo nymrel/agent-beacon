@@ -12,9 +12,8 @@ import os
 import threading
 import time
 import urllib.request
-import urllib.error
 from typing import Any, Dict, Generator, Optional
-from .core import HeartbeatPayload
+from .http_url import normalize_http_base_url, require_http_url
 
 
 class BeaconClient:
@@ -31,7 +30,7 @@ class BeaconClient:
         tags: Optional[Dict[str, str]] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ):
-        self.beacon_url = beacon_url.rstrip("/")
+        self.beacon_url = normalize_http_base_url(beacon_url, "Beacon URL")
         self.agent_id = agent_id or f"py-agent-{os.getpid()}"
         self.name = name or self.agent_id
         self.interval_sec = interval_sec
@@ -123,13 +122,15 @@ class BeaconClient:
 
     def _post_json(self, url: str, data: Dict[str, Any]) -> None:
         payload_bytes = json.dumps(data).encode("utf-8")
+        endpoint = require_http_url(url, "Beacon endpoint")
         req = urllib.request.Request(
-            url,
+            endpoint,
             data=payload_bytes,
             headers={"Content-Type": "application/json", "User-Agent": "AgentBeaconClient-Py/1.0.0"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=5.0) as resp:
+        # The shared validator restricts this request to an absolute HTTP(S) endpoint.
+        with urllib.request.urlopen(req, timeout=5.0) as resp:  # nosec B310
             resp.read()
 
 
