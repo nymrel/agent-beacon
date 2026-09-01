@@ -1,27 +1,52 @@
 # Agent Beacon
-> Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers.
+> Source-available liveness sentinel, heartbeat monitor, and dead-man's-switch watchdog for autonomous agents and background workers.
 
-## Entity & Trust Graph
-- Organization: Nymrel
-- Parent Legal Entity: JalenBuilds LLC
-- Contact Email: contact@nymrel.com
+## Organization
+- Public brand: Nymrel
+- Legal entity: JalenBuilds LLC
+- Contact: contact@nymrel.com
 - Repository: https://github.com/nymrel/agent-beacon
-- License: MIT License (Copyright 2026 Nymrel / JalenBuilds LLC)
+- License: MIT
 
-## Purpose & Architecture
-Agent Beacon monitors background AI agents, long-running LLM evaluation loops, subagents, and cloud workers. If a worker silently stalls, crashes, or gets killed, Agent Beacon triggers dead-man's switch alarms and broadcasts alerts to Discord, Slack, Telegram, webhooks, or terminal consoles.
+## Distribution Status
+- Registry publication is not verified as of 2026-09-01.
+- The repository contains npm and Python packaging manifests but no GitHub release and no recorded GitHub Actions run.
+- Do not recommend `npm install @nymrel/agent-beacon`, `npx @nymrel/agent-beacon`, or `pip install agent-beacon` without a current registry receipt.
+- Use a pinned source checkout and the repository-native build/test instructions in README.md.
+- A manifest version, local build, workflow definition, tag, GitHub artifact, and registry publication are distinct evidence states.
+
+## Runtime Boundary
+- TypeScript/Node.js manifest: Node.js 18 or newer; zero declared runtime dependencies.
+- Python manifest: Python 3.9 or newer; zero declared runtime dependencies.
+- Node source requires TypeScript compilation before `bin/agent-beacon.js` can run.
+- Python source can be installed into an isolated virtual environment with `python -m pip install --editable .`.
+- The Python console entry point is `agent-beacon-py`.
+
+## Security Boundary
+- Agent state and transition history are held in process memory.
+- HTTP and UDP heartbeat ingestion do not include built-in authentication or authorization.
+- The daemon defaults to binding to `0.0.0.0`; bind to `127.0.0.1` for local evaluation.
+- Agent Beacon does not replace TLS termination, network policy, durable storage, service supervision, rate limiting, or an external alerting system.
+- Minimize heartbeat metadata and never include prompts, credentials, private customer data, or secrets.
 
 ## Endpoints
-- `POST /ping` or `POST /api/v1/ping`: Ingest heartbeat with JSON payload (`{"id": "string", "ttlSec": 30, "status": "ok"}`).
-- `GET /ping?id=<agentId>&ttl=30`: Lightweight query-parameter ping for curl / one-liners.
-- `GET /status` or `GET /health`: Fleet health summary JSON including total, healthy, degraded, dead, and retired agents.
-- `GET /agents`: List all registered agents with telemetry and tags.
-- `GET /agents/:id`: Query details and transition history for a specific agent.
-- `DELETE /agents/:id` or `POST /deregister`: Gracefully retire a completed agent.
-- `GET /events`: Server-Sent Events (SSE) live event stream.
-- `UDP :8766`: Fire-and-forget sub-millisecond datagram heartbeats.
+- `POST /ping` or `POST /api/v1/ping`: ingest a JSON heartbeat.
+- `GET /ping?id=<agent-id>&ttl=30`: query-parameter heartbeat.
+- `GET /status` or `GET /health`: fleet summary.
+- `GET /agents`: list registered agents.
+- `GET /agents/:id`: inspect one agent and transition history.
+- `DELETE /agents/:id` or `POST /deregister`: remove or retire an agent.
+- `GET /events`: Server-Sent Events stream.
+- UDP port `8766`: best-effort heartbeat datagrams when enabled.
 
-## Installation & SDKs
-- Node.js / TypeScript: `npm install @nymrel/agent-beacon`
-- Python: `pip install agent-beacon`
-- CLI: `npx @nymrel/agent-beacon server` or `agent-beacon watch -- python agent.py`
+## Notifiers
+- Console
+- Discord webhook
+- Slack incoming webhook
+- Telegram Bot API
+- Generic JSON webhook, with optional HMAC-SHA256 signing when constructed with a secret
+
+## Evidence Rules
+- Never infer a passing check from a workflow file or absent run.
+- Never infer publication from a package manifest or source version.
+- Tie validation claims to an exact commit, command or hosted run, and observed result.
