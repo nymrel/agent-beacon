@@ -17,6 +17,14 @@ export interface HttpServerOptions {
   maxBodyBytes?: number;
 }
 
+interface HeartbeatRequestPayload extends HeartbeatPayload {
+  ttl_sec?: number;
+  interval?: number;
+  interval_sec?: number;
+  grace?: number;
+  grace_sec?: number;
+}
+
 export class BeaconHttpServer {
   private readonly store: HeartbeatStore;
   private readonly watchdog: Watchdog;
@@ -133,13 +141,17 @@ export class BeaconHttpServer {
 
       // Route: POST /ping or /api/v1/ping
       if ((pathname === '/ping' || pathname === '/api/v1/ping') && req.method === 'POST') {
-        const body = await this.readJsonBody<HeartbeatPayload>(req);
+        const body = await this.readJsonBody<HeartbeatRequestPayload>(req);
         if (!body.id) {
           this.sendJson(res, 400, { error: 'Heartbeat payload must include non-empty "id"' });
           return;
         }
 
-        const record = this.watchdog.recordPing(body);
+        const record = this.watchdog.recordPing({
+          ...body,
+          ttlSec: body.ttlSec ?? body.ttl_sec ?? body.interval ?? body.interval_sec,
+          graceSec: body.graceSec ?? body.grace_sec ?? body.grace
+        });
         this.sendJson(res, 200, { ok: true, agent: record });
         return;
       }
