@@ -68,6 +68,52 @@ test('BeaconHttpServer - full lifecycle and endpoints', async () => {
   }
 });
 
+test('BeaconHttpServer - POST /ping honors interval and grace aliases', async () => {
+  const store = new HeartbeatStore();
+  const watchdog = new Watchdog(store);
+  const sseManager = new SseManager();
+  const server = new BeaconHttpServer(store, watchdog, sseManager, { port: 0, host: '127.0.0.1' });
+
+  const port = await server.start();
+  const baseUrl = `http://127.0.0.1:${port}`;
+
+  try {
+    const bareAliases = await fetchJson(`${baseUrl}/ping`, {
+      method: 'POST',
+      body: JSON.stringify({ id: 'bare-aliases', interval: 5, grace: 2 })
+    });
+    assert.equal(bareAliases.status, 200);
+    assert.equal(bareAliases.body.agent.ttlMs, 5000);
+    assert.equal(bareAliases.body.agent.graceMs, 2000);
+
+    const snakeAliases = await fetchJson(`${baseUrl}/api/v1/ping`, {
+      method: 'POST',
+      body: JSON.stringify({ id: 'snake-aliases', interval_sec: 7, grace_sec: 3 })
+    });
+    assert.equal(snakeAliases.status, 200);
+    assert.equal(snakeAliases.body.agent.ttlMs, 7000);
+    assert.equal(snakeAliases.body.agent.graceMs, 3000);
+
+    const canonicalNames = await fetchJson(`${baseUrl}/ping`, {
+      method: 'POST',
+      body: JSON.stringify({
+        id: 'canonical-names',
+        ttlSec: 11,
+        ttl_sec: 9,
+        interval: 5,
+        graceSec: 4,
+        grace_sec: 3,
+        grace: 2
+      })
+    });
+    assert.equal(canonicalNames.status, 200);
+    assert.equal(canonicalNames.body.agent.ttlMs, 11000);
+    assert.equal(canonicalNames.body.agent.graceMs, 4000);
+  } finally {
+    await server.stop();
+  }
+});
+
 function fetchJson(url, options = {}) {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);

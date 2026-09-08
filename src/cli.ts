@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 import http from 'node:http';
 import https from 'node:https';
 import process from 'node:process';
-import { URL } from 'node:url';
+import { normalizeHttpBaseUrl, requireHttpUrl } from './utils/http-url.js';
 import { ConsoleNotifier } from './notifiers/console.js';
 import { DiscordNotifier } from './notifiers/discord.js';
 import { SlackNotifier } from './notifiers/slack.js';
@@ -74,7 +74,7 @@ function printHelp(): void {
 \x1b[1mSERVER OPTIONS:\x1b[0m
   --port, -p <number>     HTTP port (default: 8765)
   --udp, -u <number>      UDP port (default: 8766, 'false' to disable)
-  --host, -h <string>     Bind address (default: '0.0.0.0')
+  --host, -h <string>     Bind address (default: '127.0.0.1')
   --ttl <seconds>         Default agent TTL (default: 30)
   --grace <seconds>       Default grace window (default: 15)
   --discord <url>         Discord incoming webhook URL for alerts
@@ -168,7 +168,7 @@ async function handleServerCommand(args: Record<string, any>): Promise<void> {
   const port = Number(args.port || args.p || 8765);
   const udpPortRaw = args.udp || args.u;
   const udpPort = udpPortRaw === 'false' ? false : Number(udpPortRaw || 8766);
-  const host = args.host || args.h || '0.0.0.0';
+  const host = args.host || args.h || '127.0.0.1';
   const defaultTtlSec = Number(args.ttl || 30);
   const defaultGraceSec = Number(args.grace || 15);
   const audibleBell = !args.noBell;
@@ -231,7 +231,7 @@ async function handlePingCommand(args: Record<string, any>): Promise<void> {
     process.exit(1);
   }
 
-  const url = (args.url || 'http://127.0.0.1:8765').replace(/\/+$/, '');
+  const url = normalizeHttpBaseUrl(args.url || 'http://127.0.0.1:8765', 'Beacon URL');
   const payload = {
     id,
     name: args.name || id,
@@ -258,7 +258,7 @@ async function handleDoneCommand(args: Record<string, any>): Promise<void> {
     process.exit(1);
   }
 
-  const url = (args.url || 'http://127.0.0.1:8765').replace(/\/+$/, '');
+  const url = normalizeHttpBaseUrl(args.url || 'http://127.0.0.1:8765', 'Beacon URL');
   const reason = args.reason || 'Agent completed work successfully';
 
   try {
@@ -271,7 +271,7 @@ async function handleDoneCommand(args: Record<string, any>): Promise<void> {
 }
 
 async function handleStatusCommand(args: Record<string, any>): Promise<void> {
-  const url = (args.url || 'http://127.0.0.1:8765').replace(/\/+$/, '');
+  const url = normalizeHttpBaseUrl(args.url || 'http://127.0.0.1:8765', 'Beacon URL');
   const isWatch = Boolean(args.watch);
   const isJson = Boolean(args.json);
 
@@ -336,7 +336,7 @@ function renderFleetTable(data: any, url: string): void {
 async function handleWatchCommand(args: Record<string, any>, rawArgs: string[]): Promise<void> {
   const id = args.id || args.i || `proc-${process.pid}`;
   const name = args.name || id;
-  const url = (args.url || 'http://127.0.0.1:8765').replace(/\/+$/, '');
+  const url = normalizeHttpBaseUrl(args.url || 'http://127.0.0.1:8765', 'Beacon URL');
   const intervalSec = Number(args.interval || 10);
   const ttlSec = Number(args.ttl || intervalSec * 3);
 
@@ -419,7 +419,7 @@ async function handleWatchCommand(args: Record<string, any>, rawArgs: string[]):
 
 function sendHttpJson(targetUrl: string, body: unknown): Promise<void> {
   return new Promise((resolve, reject) => {
-    const parsed = new URL(targetUrl);
+    const parsed = requireHttpUrl(targetUrl, 'Beacon endpoint');
     const data = JSON.stringify(body);
     const client = parsed.protocol === 'https:' ? https : http;
 
@@ -451,7 +451,7 @@ function sendHttpJson(targetUrl: string, body: unknown): Promise<void> {
 
 function fetchHttpJson<T>(targetUrl: string): Promise<T> {
   return new Promise((resolve, reject) => {
-    const parsed = new URL(targetUrl);
+    const parsed = requireHttpUrl(targetUrl, 'Beacon endpoint');
     const client = parsed.protocol === 'https:' ? https : http;
 
     const req = client.request(

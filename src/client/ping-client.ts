@@ -7,8 +7,8 @@
 import http from 'node:http';
 import https from 'node:https';
 import process from 'node:process';
-import { URL } from 'node:url';
 import { HeartbeatPayload, PingClientOptions } from '../core/types.js';
+import { normalizeHttpBaseUrl, requireHttpUrl } from '../utils/http-url.js';
 
 export class AgentBeaconClient {
   private readonly beaconUrl: string;
@@ -26,7 +26,7 @@ export class AgentBeaconClient {
   private isRunning = false;
 
   constructor(options: PingClientOptions) {
-    this.beaconUrl = options.beaconUrl.replace(/\/+$/, '');
+    this.beaconUrl = normalizeHttpBaseUrl(options.beaconUrl, 'Beacon URL');
     this.agentId = options.agentId;
     this.name = options.name ?? options.agentId;
     this.intervalMs = options.intervalMs ?? 15000;
@@ -130,7 +130,7 @@ export class AgentBeaconClient {
   private async postJson(targetUrl: string, body: unknown): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const parsed = new URL(targetUrl);
+        const parsed = requireHttpUrl(targetUrl, 'Beacon endpoint');
         const data = JSON.stringify(body);
         const isHttps = parsed.protocol === 'https:';
         const client = isHttps ? https : http;

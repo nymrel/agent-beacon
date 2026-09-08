@@ -12,9 +12,9 @@ import json
 import sys
 import time
 import urllib.request
-import urllib.error
 from typing import Any, Dict, List, Optional
 from .core import BeaconEvent
+from .http_url import require_http_url
 
 
 class BaseNotifier:
@@ -47,9 +47,11 @@ class BaseNotifier:
             req_headers.update(headers)
 
         payload_bytes = json.dumps(data).encode("utf-8")
-        req = urllib.request.Request(url, data=payload_bytes, headers=req_headers, method="POST")
+        endpoint = require_http_url(url, "Notifier URL")
+        req = urllib.request.Request(endpoint, data=payload_bytes, headers=req_headers, method="POST")
 
-        with urllib.request.urlopen(req, timeout=8.0) as resp:
+        # The shared validator restricts this request to an absolute HTTP(S) endpoint.
+        with urllib.request.urlopen(req, timeout=8.0) as resp:  # nosec B310
             resp.read()
 
 
@@ -88,7 +90,7 @@ class DiscordNotifier(BaseNotifier):
 
     def __init__(self, webhook_url: str, username: str = "Agent Beacon Sentinel", enabled_events: Optional[List[str]] = None):
         super().__init__(enabled_events)
-        self.webhook_url = webhook_url
+        self.webhook_url = require_http_url(webhook_url, "Discord webhook URL")
         self.username = username
 
     def notify(self, event: BeaconEvent) -> None:
@@ -145,7 +147,7 @@ class SlackNotifier(BaseNotifier):
 
     def __init__(self, webhook_url: str, username: str = "Agent Beacon", enabled_events: Optional[List[str]] = None):
         super().__init__(enabled_events)
-        self.webhook_url = webhook_url
+        self.webhook_url = require_http_url(webhook_url, "Slack webhook URL")
         self.username = username
 
     def notify(self, event: BeaconEvent) -> None:
@@ -212,7 +214,7 @@ class WebhookNotifier(BaseNotifier):
 
     def __init__(self, url: str, secret: Optional[str] = None, headers: Optional[Dict[str, str]] = None, enabled_events: Optional[List[str]] = None):
         super().__init__(enabled_events)
-        self.url = url
+        self.url = require_http_url(url, "Webhook URL")
         self.secret = secret
         self.custom_headers = headers or {}
 
