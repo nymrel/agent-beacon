@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling==1.32.0"]
+build-backend = "hatchling.build"
 
 [project]
 name = "agent-beacon"
@@ -10,14 +10,17 @@ authors = [
 ]
 description = "Zero-dependency liveness sentinel and watchdog mesh for autonomous AI agents"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
+dependencies = []
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: System :: Monitoring",
@@ -27,10 +30,32 @@ keywords = ["ai-agents", "liveness", "watchdog", "sentinel", "heartbeat", "nymre
 
 [project.urls]
 "Homepage" = "https://github.com/nymrel/agent-beacon"
+"Repository" = "https://github.com/nymrel/agent-beacon"
 "Bug Tracker" = "https://github.com/nymrel/agent-beacon/issues"
+"Changelog" = "https://github.com/nymrel/agent-beacon/blob/main/CHANGELOG.md"
+"Security" = "https://github.com/nymrel/agent-beacon/blob/main/SECURITY.md"
 
 [project.scripts]
 agent-beacon-py = "agent_beacon.cli:main"
 
-[tool.setuptools.packages.find]
-where = ["python"]
+[tool.hatch.build.targets.wheel]
+packages = ["python/agent_beacon"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "python/agent_beacon",
+    "python/tests",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "RELEASE_READINESS.md",
+    "SECURITY.md",
+    "pyproject.toml",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

@@ -11,10 +11,9 @@ import json
 import re
 import socket
 import threading
-import time
 from urllib.parse import urlparse, parse_qs
-from typing import Any, Dict, List, Optional
-from .core import HeartbeatStore, Watchdog, HeartbeatPayload, AgentStatus
+from typing import Any, List, Optional
+from .core import HeartbeatStore, Watchdog, HeartbeatPayload
 
 
 class BeaconRequestHandler(BaseHTTPRequestHandler):
@@ -201,7 +200,7 @@ class BeaconRequestHandler(BaseHTTPRequestHandler):
 class BeaconUdpServer:
     """Zero-dependency UDP socket listener for fast datagram heartbeats in Python."""
 
-    def __init__(self, watchdog: Watchdog, host: str = "0.0.0.0", port: int = 8766):
+    def __init__(self, watchdog: Watchdog, host: str = "127.0.0.1", port: int = 8766):
         self.watchdog = watchdog
         self.host = host
         self.port = port
@@ -253,7 +252,7 @@ class BeaconServer:
 
     def __init__(
         self,
-        host: str = "0.0.0.0",
+        host: str = "127.0.0.1",
         http_port: int = 8765,
         udp_port: Optional[int] = 8766,
         default_ttl_sec: float = 30.0,

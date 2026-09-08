@@ -22,7 +22,7 @@ export class BeaconUdpServer {
   constructor(watchdog: Watchdog, options: UdpServerOptions = {}) {
     this.watchdog = watchdog;
     this.port = options.port ?? 8766;
-    this.host = options.host ?? '0.0.0.0';
+    this.host = options.host ?? '127.0.0.1';
   }
 
   public async start(): Promise<number> {
@@ -59,6 +59,11 @@ export class BeaconUdpServer {
   public getPort(): number | null {
     const addr = this.socket?.address();
     return typeof addr === 'object' && addr ? addr.port : null;
+  }
+
+  public getAddress(): string | null {
+    const addr = this.socket?.address();
+    return typeof addr === 'object' && addr ? addr.address : null;
   }
 
   private handleMessage(buffer: Buffer): void {

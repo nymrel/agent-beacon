@@ -21,12 +21,10 @@ from agent_beacon.core import (
 )
 from agent_beacon.notifiers import (
     ConsoleNotifier,
-    DiscordNotifier,
-    SlackNotifier,
-    TelegramNotifier,
     WebhookNotifier,
 )
 from agent_beacon.client import BeaconClient, beacon_watch
+from agent_beacon.http_url import normalize_http_base_url, require_http_url
 from agent_beacon.server import BeaconServer
 
 
@@ -137,6 +135,35 @@ class TestNotifiers(unittest.TestCase):
             self.assertIn("notif-agent", output)
         finally:
             sys.stdout = old_stdout
+
+
+class TestSecurityBoundaries(unittest.TestCase):
+    def test_outbound_urls_require_http_without_embedded_credentials(self):
+        self.assertEqual(require_http_url("https://example.com/hook"), "https://example.com/hook")
+        self.assertEqual(normalize_http_base_url("http://127.0.0.1:8765/"), "http://127.0.0.1:8765")
+
+        for candidate in (
+            "file:///tmp/beacon",
+            "ftp://example.com/beacon",
+            "http:///missing-host",
+            "http://user:secret@example.com",
+        ):
+            with self.subTest(candidate=candidate):
+                with self.assertRaises(ValueError):
+                    require_http_url(candidate)
+
+        with self.assertRaises(ValueError):
+            BeaconClient(beacon_url="file:///tmp/beacon", agent_id="unsafe-client")
+        with self.assertRaises(ValueError):
+            WebhookNotifier(url="file:///tmp/hook")
+
+    def test_server_defaults_to_loopback(self):
+        server = BeaconServer(http_port=0, udp_port=None)
+        try:
+            self.assertEqual(server.host, "127.0.0.1")
+            self.assertEqual(server.http_server.server_address[0], "127.0.0.1")
+        finally:
+            server.http_server.server_close()
 
 
 class TestServerAndClient(unittest.TestCase):

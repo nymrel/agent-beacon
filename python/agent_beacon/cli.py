@@ -9,19 +9,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
 import time
 import urllib.request
-import urllib.error
 try:
-    from .core import AgentStatus
+    from .http_url import normalize_http_base_url
     from .notifiers import ConsoleNotifier, DiscordNotifier, SlackNotifier, TelegramNotifier, WebhookNotifier
     from .server import BeaconServer
 except (ImportError, ValueError):
-    import os
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    from agent_beacon.core import AgentStatus
+    from agent_beacon.http_url import normalize_http_base_url
     from agent_beacon.notifiers import ConsoleNotifier, DiscordNotifier, SlackNotifier, TelegramNotifier, WebhookNotifier
     from agent_beacon.server import BeaconServer
 
@@ -37,7 +34,7 @@ def main() -> None:
     srv = subparsers.add_parser("server", help="Start standalone beacon daemon")
     srv.add_argument("--port", "-p", type=int, default=8765, help="HTTP port (default: 8765)")
     srv.add_argument("--udp", "-u", type=int, default=8766, help="UDP port (default: 8766, 0 to disable)")
-    srv.add_argument("--host", default="0.0.0.0", help="Bind address (default: 0.0.0.0)")
+    srv.add_argument("--host", default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
     srv.add_argument("--ttl", type=float, default=30.0, help="Default agent TTL in seconds")
     srv.add_argument("--grace", type=float, default=15.0, help="Default grace window in seconds")
     srv.add_argument("--discord", help="Discord webhook URL")
@@ -140,7 +137,7 @@ def handle_server(args: argparse.Namespace) -> None:
 
 
 def handle_ping(args: argparse.Namespace) -> None:
-    url = args.url.rstrip("/") + "/ping"
+    url = args.url
     payload = {
         "id": args.id,
         "name": args.name or args.id,
@@ -149,9 +146,11 @@ def handle_ping(args: argparse.Namespace) -> None:
         "status": args.status,
     }
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
+        url = normalize_http_base_url(args.url, "Beacon URL") + "/ping"
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+        # The shared validator restricts this request to an absolute HTTP(S) endpoint.
+        with urllib.request.urlopen(req, timeout=4.0) as resp:  # nosec B310
             resp.read()
         print(f"\033[32m✓\033[0m Heartbeat registered for agent '{args.id}'")
     except Exception as exc:
@@ -160,12 +159,14 @@ def handle_ping(args: argparse.Namespace) -> None:
 
 
 def handle_done(args: argparse.Namespace) -> None:
-    url = args.url.rstrip("/") + "/deregister"
+    url = args.url
     payload = {"id": args.id, "reason": args.reason}
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
+        url = normalize_http_base_url(args.url, "Beacon URL") + "/deregister"
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+        # The shared validator restricts this request to an absolute HTTP(S) endpoint.
+        with urllib.request.urlopen(req, timeout=4.0) as resp:  # nosec B310
             resp.read()
         print(f"\033[32m✓\033[0m Agent '{args.id}' gracefully retired")
     except Exception as exc:
@@ -174,10 +175,12 @@ def handle_done(args: argparse.Namespace) -> None:
 
 
 def handle_status(args: argparse.Namespace) -> None:
-    url = args.url.rstrip("/") + "/status"
+    url = args.url
     try:
+        url = normalize_http_base_url(args.url, "Beacon URL") + "/status"
         req = urllib.request.Request(url, headers={"User-Agent": "AgentBeaconCLI/1.0.0"})
-        with urllib.request.urlopen(req, timeout=4.0) as resp:
+        # The shared validator restricts this request to an absolute HTTP(S) endpoint.
+        with urllib.request.urlopen(req, timeout=4.0) as resp:  # nosec B310
             raw = resp.read().decode("utf-8")
             data = json.loads(raw)
 

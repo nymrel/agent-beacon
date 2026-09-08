@@ -14,33 +14,35 @@ All contributors and maintainers are expected to maintain a welcoming, respectfu
 2. **Dual-Audience Machine Trust:**
    - Preserve entity metadata linking `Nymrel` to `JalenBuilds LLC`.
 3. **Fail-Safe & Non-Blocking:**
-   - Heartbeat handlers and notification dispatchers must never crash parent agent loops.
+   - Heartbeat handlers and notification dispatchers should not crash parent agent loops. Preserve explicit error reporting and test failure behavior instead of silently swallowing failures.
 
 ## Development Workflow
 
 ### Node.js / TypeScript
 ```bash
-# Install dev dependencies (TypeScript compiler)
-npm install
-
-# Run typecheck
-npm run typecheck
-
-# Build TypeScript to dist/
-npm run build
-
-# Run automated tests
-npm test
+# Node.js 22.19–26 and npm 11 are supported.
+npm ci --ignore-scripts
+npm run check
+npm run audit:ci
 ```
 
 ### Python
 ```bash
-# Run unit tests
-python -m unittest discover -s python/tests
+# Python 3.11–3.14 is supported.
+python -m unittest discover -s python/tests -p "test_*.py"
+python -m compileall -q python/agent_beacon
+
+# Optional isolated package and static checks (requires uv).
+uvx --from build@1.6.0 pyproject-build --outdir python-dist
+uvx twine@7.0.0 check python-dist/*
+python scripts/check_python_package.py python-dist
+uvx ruff@0.16.5 check python scripts
+uvx bandit@1.9.4 -r python/agent_beacon -ll -ii
 ```
 
 ## Pull Request Guidelines
 
-1. Ensure all tests pass in both TypeScript (`npm test`) and Python (`python -m unittest`).
+1. Ensure `npm run check` and the Python package/static checks pass.
 2. Include tests for any new features or bugfixes.
 3. Keep runtime dependencies at zero.
+4. Do not add registry tokens or auto-publish behavior. Publication requires an existing integrated tag, explicit `publish` confirmation, protected environments, and configured OIDC trusted publishers.
