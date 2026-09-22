@@ -76,7 +76,7 @@ jobs:
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Run source and dependency gates
@@ -120,7 +120,7 @@ jobs:
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
           npm run check:package
           mkdir -p release/npm release/python
@@ -186,7 +186,7 @@ jobs:
       - name: Pin npm with trusted-publishing support
         # npm is the publishing client and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
-        run: npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+        run: npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
 
       - name: Publish the exact npm archive with provenance
         run: |

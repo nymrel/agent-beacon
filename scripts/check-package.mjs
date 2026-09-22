@@ -22,10 +22,12 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-const [pack] = JSON.parse(result.stdout || '[]');
+const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const parsed = JSON.parse(result.stdout || '[]');
+// npm < 12 returns an array; npm >= 12 returns an object keyed by package name.
+const pack = Array.isArray(parsed) ? parsed[0] : parsed[packageJson.name] ?? Object.values(parsed)[0];
 assert.ok(pack, 'npm pack returned no package manifest');
 const paths = new Set(pack.files.map((file) => file.path));
-const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 for (const required of [
   'bin/agent-beacon.js',

@@ -1,7 +1,7 @@
 {
   "name": "@nymrel/agent-beacon",
   "version": "1.0.0",
-  "packageManager": "npm@11.19.1",
+  "packageManager": "npm@12.0.2",
   "description": "Zero-dependency liveness sentinel, heartbeat monitor, and dead-man's switch watchdog for autonomous AI agents and background workers",
   "type": "module",
   "main": "./dist/index.js",
@@ -64,7 +64,7 @@
   },
   "engines": {
     "node": ">=22.19 <27",
-    "npm": ">=11.5 <12"
+    "npm": ">=11.5 <13"
   },
   "sideEffects": false,
   "publishConfig": {
