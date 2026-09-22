@@ -59,7 +59,7 @@
   },
   "homepage": "https://github.com/nymrel/agent-beacon#readme",
   "devDependencies": {
-    "@types/node": "26.5.0",
+    "@types/node": "26.6.0",
     "typescript": "7.0.2"
   },
   "engines": {
