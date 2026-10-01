@@ -45,7 +45,7 @@ jobs:
       - name: Pin npm
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
-        run: npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+        run: npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
 
       - name: Install locked dependencies without lifecycle scripts
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -116,7 +116,7 @@ jobs:
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Verify the npm package boundary
@@ -165,7 +165,7 @@ jobs:
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Fail on dependency vulnerabilities
@@ -220,7 +220,7 @@ jobs:
         # npm is the package manager under test and is pinned outside the project lockfile.
         # zizmor: ignore[adhoc-packages]
         run: |
-          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
+          npm install --global npm@12.0.2 --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Run the complete local acceptance gate
