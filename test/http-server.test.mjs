@@ -109,6 +109,19 @@ test('BeaconHttpServer - POST /ping honors interval and grace aliases', async ()
     assert.equal(canonicalNames.status, 200);
     assert.equal(canonicalNames.body.agent.ttlMs, 11000);
     assert.equal(canonicalNames.body.agent.graceMs, 4000);
+
+    for (const graceField of ['graceSec', 'grace_sec', 'grace']) {
+      const zeroGrace = await fetchJson(`${baseUrl}/ping`, {
+        method: 'POST',
+        body: JSON.stringify({ id: `zero-${graceField}`, ttlSec: 5, [graceField]: 0 })
+      });
+      assert.equal(zeroGrace.status, 200);
+      assert.equal(zeroGrace.body.agent.graceMs, 0);
+    }
+
+    const zeroQuery = await fetchJson(`${baseUrl}/ping?id=zero-query&ttl=5&grace=0`);
+    assert.equal(zeroQuery.status, 200);
+    assert.equal(zeroQuery.body.agent.graceMs, 0);
   } finally {
     await server.stop();
   }
