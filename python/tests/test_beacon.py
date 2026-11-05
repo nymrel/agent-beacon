@@ -4,10 +4,12 @@ Copyright (c) 2026 Nymrel / JalenBuilds LLC. MIT Licensed.
 """
 
 import os
+import json
 import sys
 import time
 import unittest
 from io import StringIO
+from urllib.request import Request, urlopen
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -205,6 +207,25 @@ class TestServerAndClient(unittest.TestCase):
 
         rec_after = self.server.store.get("context-agent")
         self.assertEqual(rec_after.status, AgentStatus.DEREGISTERED)
+
+    def test_zero_grace_aliases_and_precedence(self):
+        for field in ("graceSec", "grace_sec", "grace"):
+            with self.subTest(field=field):
+                request = Request(
+                    self.url + "/ping",
+                    data=json.dumps({"id": "zero-" + field, "ttlSec": 5, field: 0}).encode(),
+                    headers={"Content-Type": "application/json"},
+                )
+                with urlopen(request, timeout=5) as response:
+                    self.assertEqual(json.load(response)["agent"]["graceSec"], 0)
+
+        request = Request(
+            self.url + "/api/v1/ping",
+            data=json.dumps({"id": "zero-precedence", "graceSec": 0, "grace_sec": 4, "grace": 2}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urlopen(request, timeout=5) as response:
+            self.assertEqual(json.load(response)["agent"]["graceSec"], 0)
 
 
 if __name__ == "__main__":
