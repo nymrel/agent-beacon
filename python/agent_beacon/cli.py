@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 try:
     from .http_url import normalize_http_base_url
@@ -180,7 +181,16 @@ def handle_status(args: argparse.Namespace) -> None:
         url = normalize_http_base_url(args.url, "Beacon URL") + "/status"
         req = urllib.request.Request(url, headers={"User-Agent": "AgentBeaconCLI/1.0.0"})
         # The shared validator restricts this request to an absolute HTTP(S) endpoint.
-        with urllib.request.urlopen(req, timeout=4.0) as resp:  # nosec B310
+        try:
+            response = urllib.request.urlopen(req, timeout=4.0)  # nosec B310
+        except urllib.error.HTTPError as exc:
+            # A reachable sentinel reports a DEAD agent with HTTP 503 and a
+            # useful fleet summary. Keep that evidence visible to people and
+            # JSON consumers; other HTTP errors are actual query failures.
+            if exc.code != 503:
+                raise
+            response = exc
+        with response as resp:
             raw = resp.read().decode("utf-8")
             data = json.loads(raw)
 
@@ -200,7 +210,8 @@ def handle_status(args: argparse.Namespace) -> None:
         )
         print("─────────────────────────────────────────────────────────────────────────────\n")
     except Exception as exc:
-        print(f"Failed to query beacon at {url}: {exc}")
+        print(f"Failed to query beacon at {url}: {exc}", file=sys.stderr)
+        print("Check the server address and start the beacon server if it is stopped.", file=sys.stderr)
         sys.exit(1)
 
 
