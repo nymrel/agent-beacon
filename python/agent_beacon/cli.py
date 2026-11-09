@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 try:
     from .http_url import normalize_http_base_url
@@ -174,15 +175,56 @@ def handle_done(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _is_dead_fleet_payload(data: object) -> bool:
+    if not isinstance(data, dict) or data.get("mesh") != "agent-beacon":
+        return False
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        return False
+    counts = ("healthy", "degraded", "dead", "deregistered")
+    if any(type(summary.get(key)) is not int or summary[key] < 0 for key in ("total", *counts)):
+        return False
+    if summary["dead"] <= 0 or summary["total"] != sum(summary[key] for key in counts):
+        return False
+    agents = summary.get("agents")
+    if not isinstance(agents, list) or len(agents) != summary["total"]:
+        return False
+    statuses = {"HEALTHY": "healthy", "RECOVERED": "healthy", "DEGRADED": "degraded",
+                "DEAD": "dead", "DEREGISTERED": "deregistered"}
+    observed = dict.fromkeys(counts, 0)
+    for agent in agents:
+        if not isinstance(agent, dict) or not isinstance(agent.get("id"), str) or not agent["id"]:
+            return False
+        agent_status = agent.get("status")
+        if not isinstance(agent_status, str) or agent_status not in statuses:
+            return False
+        observed[statuses[agent_status]] += 1
+    return all(observed[key] == summary[key] for key in counts)
+
+
 def handle_status(args: argparse.Namespace) -> None:
     url = args.url
     try:
+        dead_fleet_response = False
         url = normalize_http_base_url(args.url, "Beacon URL") + "/status"
         req = urllib.request.Request(url, headers={"User-Agent": "AgentBeaconCLI/1.0.0"})
         # The shared validator restricts this request to an absolute HTTP(S) endpoint.
-        with urllib.request.urlopen(req, timeout=4.0) as resp:  # nosec B310
+        try:
+            response = urllib.request.urlopen(req, timeout=4.0)  # nosec B310
+        except urllib.error.HTTPError as exc:
+            # A reachable sentinel reports a DEAD agent with HTTP 503 and a
+            # useful fleet summary. Keep that evidence visible to people and
+            # JSON consumers; other HTTP errors are actual query failures.
+            if exc.code != 503:
+                raise
+            response = exc
+            dead_fleet_response = True
+        with response as resp:
             raw = resp.read().decode("utf-8")
             data = json.loads(raw)
+
+        if dead_fleet_response and not _is_dead_fleet_payload(data):
+            raise ValueError("HTTP 503 did not contain a valid dead-fleet summary")
 
         if args.json:
             print(json.dumps(data, indent=2))
@@ -200,7 +242,8 @@ def handle_status(args: argparse.Namespace) -> None:
         )
         print("─────────────────────────────────────────────────────────────────────────────\n")
     except Exception as exc:
-        print(f"Failed to query beacon at {url}: {exc}")
+        print(f"Failed to query beacon at {url}: {exc}", file=sys.stderr)
+        print("Check the server address and start the beacon server if it is stopped.", file=sys.stderr)
         sys.exit(1)
 
 
