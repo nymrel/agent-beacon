@@ -36,7 +36,7 @@ export class HeartbeatStore {
     }
 
     const ttlMs = payload.ttlSec ? payload.ttlSec * 1000 : this.defaultTtlMs;
-    const graceMs = payload.graceSec ? payload.graceSec * 1000 : this.defaultGraceMs;
+    const graceMs = (payload.graceSec ?? this.defaultGraceMs / 1000) * 1000;
     const name = payload.name?.trim() || id;
 
     const existing = this.records.get(id);

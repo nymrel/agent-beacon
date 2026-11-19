@@ -133,10 +133,9 @@ class BeaconRequestHandler(BaseHTTPRequestHandler):
                     or body.get("interval")
                     or body.get("interval_sec")
                 ),
-                grace_sec=(
-                    body.get("graceSec")
-                    or body.get("grace_sec")
-                    or body.get("grace")
+                grace_sec=next(
+                    (body[key] for key in ("graceSec", "grace_sec", "grace") if body.get(key) is not None),
+                    None,
                 ),
                 seq=body.get("seq"),
                 status=body.get("status", "ok"),
