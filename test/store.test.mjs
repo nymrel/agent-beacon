@@ -68,3 +68,15 @@ test('HeartbeatStore - missing ID throws error', () => {
     store.registerOrUpdate({ id: '   ' });
   }, /missing required non-empty "id"/);
 });
+
+test('HeartbeatStore - explicit zero grace survives registration and refresh', () => {
+  const store = new HeartbeatStore({ defaultGraceSec: 15 });
+  const { record } = store.registerOrUpdate({ id: 'no-grace', ttlSec: 5, graceSec: 0 });
+  assert.equal(record.graceMs, 0);
+  store.registerOrUpdate({ id: 'no-grace', ttlSec: 5, graceSec: 2 });
+  assert.equal(record.graceMs, 2000);
+  store.registerOrUpdate({ id: 'no-grace', ttlSec: 5, graceSec: 0 });
+  assert.equal(record.graceMs, 0);
+  store.registerOrUpdate({ id: 'default-grace' });
+  assert.equal(store.get('default-grace').graceMs, 15000);
+});
