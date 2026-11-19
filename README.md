@@ -48,6 +48,21 @@
 
 ## ⚡ Why Agent Beacon?
 
+### Choose your path
+
+| Your goal | First action | Next action |
+| --- | --- | --- |
+| Understand a worker's status | Ask your operator for the fleet summary: **Healthy** has recent heartbeats, **Degraded** missed its interval, **Dead** exceeded interval plus grace, **Retired** was explicitly finished. | A missing heartbeat is a liveness signal, not proof of task failure. Ask the worker owner to check progress before restarting work. |
+| Add monitoring as a developer | Complete Source Evaluation, start a loopback server, and send one synthetic ping. | Query status, retire the synthetic worker, and verify the retired count. Keep alerts and production integration separate from the local trial. |
+| Connect an agent | Use the authenticated host's configured server address and a stable worker ID with `POST /ping`. Read JSON from `GET /status` or `status --json`. | HTTP `503` can carry a valid fleet summary with dead workers; preserve and inspect its body. Finish with `POST /deregister` after actual completion. |
+
+The CLI reports a successfully retrieved fleet summary even when it contains
+dead workers; a zero CLI exit is not an all-healthy gate. Gate on
+`summary.dead` and the individual agent states. If status cannot be retrieved,
+keep that transport failure separate from a known dead worker, check the
+configured server address, and confirm the server is running. This repository
+has no hosted fleet dashboard or built-in caller authentication.
+
 Autonomous AI agents, subagents, and long-running reasoning loops operate in volatile environments:
 - **Silent Stalls:** Unhandled promise rejections, hung LLM streaming connections, or infinite token loops freeze execution without crashing the host process.
 - **OOM Kills & Cloud Preemption:** Spot instances, Docker OOM killer, or cloud worker timeout limits terminate agents abruptly.
